@@ -1,0 +1,8 @@
+{
+  "title": "Contexto do Projeto Apolo",
+  "statements": [
+    {"claim": "O projeto Apolo usa Postgres 16 como banco principal.", "sources": ["doc-arquitetura-v3"], "confidence": 0.97},
+    {"claim": "A API de pagamentos exige o header X-Sandbox em ambiente de teste.", "sources": ["runbook-pagamentos"], "confidence": 1},
+    {"claim": "O cliente prefere respostas em pt-BR, tom direto.", "confidence": 0.85}
+  ]
+}

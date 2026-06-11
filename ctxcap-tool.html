@@ -1,0 +1,634 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ctxcap · console de cápsulas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<style>
+  :root{
+    --ink:#0b0d0c; --ink2:#11140f; --panel:#15180f3b; --line:#2b3022;
+    --txt:#e7ead8; --dim:#8a917a; --acid:#c6f24e; --acid-dim:#7e9a2e;
+    --amber:#e8a13c; --red:#e0633f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #1a2010 0%, transparent 60%),
+      repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px),
+      var(--ink);
+    color:var(--txt); font-family:"IBM Plex Mono",monospace; font-size:14px;
+    line-height:1.55; padding:32px 20px 80px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+  header{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:24px}
+  .logo{font-family:Fraunces,serif;font-style:italic;font-size:34px;letter-spacing:-.5px;color:var(--txt)}
+  .logo b{color:var(--acid);font-style:normal;font-weight:500}
+  .sub{color:var(--dim);font-size:12.5px;margin-top:4px;max-width:640px}
+  .tabs{display:flex;gap:6px;margin:22px 0 26px}
+  .tab{background:transparent;border:1px solid var(--line);color:var(--dim);
+    font-family:inherit;font-size:12.5px;padding:8px 16px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+  .tab[aria-selected="true"]{color:var(--ink);background:var(--acid);border-color:var(--acid);font-weight:600}
+  label{display:block;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px}
+  input,textarea{width:100%;background:var(--ink2);border:1px solid var(--line);color:var(--txt);
+    font-family:inherit;font-size:13.5px;padding:10px 12px;border-radius:0;outline:none}
+  input:focus,textarea:focus{border-color:var(--acid-dim)}
+  textarea{resize:vertical;min-height:54px}
+  .field{margin-bottom:18px}
+  .stmt{border:1px solid var(--line);border-left:2px solid var(--acid-dim);padding:16px;margin-bottom:14px;background:var(--panel);position:relative}
+  .stmt .grid{display:grid;grid-template-columns:1fr 120px;gap:12px;margin-top:12px}
+  .rm{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--dim);
+    cursor:pointer;font-size:18px;line-height:1;font-family:inherit}
+  .rm:hover{color:var(--red)}
+  .btn{font-family:inherit;font-size:13px;cursor:pointer;padding:10px 18px;border-radius:0;letter-spacing:.03em}
+  .btn-ghost{background:transparent;border:1px dashed var(--line);color:var(--dim)}
+  .btn-ghost:hover{border-color:var(--acid-dim);color:var(--txt)}
+  .btn-go{background:var(--acid);border:1px solid var(--acid);color:var(--ink);font-weight:600;text-transform:uppercase}
+  .btn-go:hover{background:#d4ff63}
+  .row-actions{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
+  .btn-sm{background:var(--ink2);border:1px solid var(--line);color:var(--txt)}
+  .btn-sm:hover{border-color:var(--acid-dim)}
+  .out{margin-top:30px;border-top:1px solid var(--line);padding-top:24px;display:none}
+  .root{background:var(--ink2);border:1px solid var(--acid-dim);padding:14px 16px;margin-bottom:18px}
+  .root .k{color:var(--acid);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .cid{word-break:break-all;color:var(--txt);font-size:13px}
+  .cidlist{list-style:none;padding:0;margin:0}
+  .cidlist li{border:1px solid var(--line);padding:10px 12px;margin-bottom:8px}
+  .cidlist .c{color:var(--amber);font-size:11.5px;word-break:break-all}
+  .cidlist .t{color:var(--txt);font-size:13px;margin-top:3px}
+  pre{background:var(--ink2);border:1px solid var(--line);padding:16px;white-space:pre-wrap;
+    word-break:break-word;font-size:12.5px;color:var(--txt);margin:16px 0 0;max-height:340px;overflow:auto}
+  .verdict{padding:14px 16px;border:1px solid var(--line);margin-top:18px;font-size:14px}
+  .ok{border-color:var(--acid-dim);color:var(--acid)}
+  .bad{border-color:var(--red);color:var(--red)}
+  .verdict ul{margin:8px 0 0;padding-left:18px;color:var(--txt);font-size:12.5px}
+  .note{color:var(--dim);font-size:11.5px;margin-top:10px;line-height:1.5}
+  .step{color:var(--acid);font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .dropzone{border:1.5px dashed var(--line);background:var(--panel);padding:28px 20px;text-align:center;transition:.15s}
+  .dropzone.over{border-color:var(--acid);background:#1a200f}
+  .dz-big{font-family:Fraunces,serif;font-size:20px;color:var(--txt)}
+  .dz-sub{color:var(--dim);font-size:12px;margin:8px 0}
+  .dz-hint{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.5}
+  .orsep{display:flex;align-items:center;gap:14px;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 18px}
+  .orsep::before,.orsep::after{content:"";flex:1;height:1px;background:var(--line)}
+  .hint{color:var(--dim);text-transform:none;letter-spacing:0;font-size:11px}
+  .howto{background:var(--ink2);border-left:2px solid var(--acid);padding:14px 16px;font-size:12.5px;line-height:1.65;color:var(--txt);margin-bottom:18px}
+  .howto b{color:var(--acid)}
+  .cidlbl{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  .filechip{display:inline-flex;align-items:center;gap:8px;background:var(--ink2);border:1px solid var(--acid-dim);padding:6px 10px;margin:6px 6px 0 0;font-size:12px;color:var(--txt)}
+  .filechip .x{cursor:pointer;color:var(--dim)}.filechip .x:hover{color:var(--red)}
+  .filechip .meta{color:var(--dim);font-size:11px}
+  .packbox{border:1px solid var(--line);background:var(--panel);padding:16px;margin-top:18px}
+  .packrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .plabel{color:var(--dim);font-size:11.5px;min-width:120px}
+  .modebtn{background:transparent;border:1px solid var(--line);color:var(--dim);font-family:inherit;font-size:12px;padding:6px 14px;cursor:pointer}
+  .modebtn[aria-selected="true"]{background:var(--acid);color:var(--ink);border-color:var(--acid);font-weight:600}
+  .packrow input{flex:1;min-width:180px}
+  .packrow select{background:var(--ink2);border:1px solid var(--line);color:var(--txt);font-family:inherit;font-size:12px;padding:7px}
+  .tokinfo{color:var(--acid);font-size:12px;margin-top:6px;min-height:16px}
+  .chk{display:flex;align-items:center;gap:7px;color:var(--txt);font-size:12.5px;cursor:pointer}
+  .chk input{width:auto}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--acid);
+    color:var(--ink);padding:10px 18px;font-weight:600;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="logo"><b>ctxcap</b> · console de cápsulas</div>
+    <div class="sub">Gera e verifica cápsulas de contexto endereçadas por conteúdo (CIDv1 · sha2-256 · CARv1). Tudo roda no seu navegador — nada é enviado a lugar nenhum. Os CIDs são idênticos aos do <code>ctxcap.py</code>.</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" id="tabGerar" onclick="showTab('gerar')">Gerar</button>
+    <button class="tab" role="tab" aria-selected="false" id="tabVerificar" onclick="showTab('verificar')">Verificar</button>
+    <button class="tab" role="tab" aria-selected="false" id="tabEnxugar" onclick="showTab('enxugar')">Enxugar msg</button>
+  </div>
+
+  <!-- GERAR -->
+  <section id="panel-gerar">
+    <div class="step">PASSO 1 · escolha de onde vêm os fatos</div>
+
+    <div class="dropzone" id="drop">
+      <div class="dz-big">Arraste arquivos aqui</div>
+      <div class="dz-sub">ou</div>
+      <button class="btn btn-sm" onclick="document.getElementById('filepick').click()">Escolher arquivos do computador</button>
+      <input type="file" id="filepick" multiple style="display:none">
+      <div class="dz-hint">Texto, código e <b>PDF de texto</b> viram afirmações automaticamente. PDF escaneado (imagem) precisa de OCR — use a versão de terminal (<code>ctxcap.py ingest arquivo.pdf</code>).</div>
+    </div>
+    <div id="chips" style="margin-top:12px"></div>
+    <div class="packrow" style="margin-top:10px">
+      <span class="plabel">Chunking de arquivos:</span>
+      <button class="modebtn" id="modeChunkWhole" aria-selected="true" onclick="setChunkMode('whole')">Arquivo inteiro</button>
+      <button class="modebtn" id="modeChunkEntropy" aria-selected="false" onclick="setChunkMode('entropy')">Entropia BLT</button>
+      <span class="hint" style="margin-left:8px">BLT divide em fronteiras semânticas (funções, parágrafos)</span>
+    </div>
+
+    <div class="orsep"><span>ou digite fatos à mão</span></div>
+
+    <div class="field">
+      <label>Título da cápsula <span class="hint">— um nome pra você identificar este pacote</span></label>
+      <input id="title" placeholder="ex.: Contexto do Projeto Apolo" value="Contexto do Projeto Apolo">
+    </div>
+    <div id="stmts"></div>
+    <div class="row-actions">
+      <button class="btn btn-ghost" onclick="addStmt()">+ adicionar afirmação manual</button>
+      <button class="btn btn-go" onclick="gerar()">Gerar cápsula →</button>
+    </div>
+    <div class="note"><b>Afirmação</b> = um fato que você quer que o chat trate como verdade. <b>Fonte</b> = de onde veio (doc, arquivo, url) — opcional. <b>Confiança</b> = o quanto você confia, de 0 a 1 — opcional.</div>
+
+    <div class="out" id="out">
+      <div class="step">PASSO 2 · sua cápsula está pronta — agora use ela</div>
+      <div class="howto">
+        <b>Para usar num chat:</b> clique em <b>“Copiar prompt”</b> abaixo e cole como a <b>primeira mensagem</b> de qualquer chat de IA. O chat passará a responder só com base nestes fatos e dirá “fora do contexto” quando algo não estiver coberto.<br>
+        <b>Para guardar/reusar:</b> baixe o <b>.json</b> (legível, reabre aqui na aba Verificar) ou o <b>.car</b> (formato compacto).
+      </div>
+      <div class="root">
+        <div class="k">root CID — a “impressão digital” desta cápsula (muda se qualquer fato mudar)</div>
+        <div class="cid" id="rootCid"></div>
+      </div>
+      <div class="cidlbl">Fatos incluídos:</div>
+      <ul class="cidlist" id="cidlist"></ul>
+
+      <div class="packbox">
+        <div class="cidlbl" style="margin-bottom:10px">Economia de tokens (opcional):</div>
+        <div class="packrow">
+          <span class="plabel">Formato:</span>
+          <button class="modebtn" id="modeFull" onclick="setMode('full')">Completo</button>
+          <button class="modebtn" id="modeCompact" onclick="setMode('compact')">Compacto</button>
+        </div>
+        <div class="packrow">
+          <span class="plabel">Só fatos relevantes a:</span>
+          <input id="packQuery" placeholder="ex.: qual dataset e sample size? (vazio = todos)" oninput="renderPrompt()">
+          <select id="packK" onchange="renderPrompt()" title="máx. de fatos">
+            <option value="3">top 3</option><option value="5" selected>top 5</option>
+            <option value="8">top 8</option><option value="0">todos relevantes</option>
+          </select>
+        </div>
+        <div class="packrow">
+          <span class="plabel">Resposta da IA:</span>
+          <label class="chk"><input type="checkbox" id="terseChk" onchange="renderPrompt()"> Saída enxuta (corta tokens da resposta)</label>
+        </div>
+        <div class="tokinfo" id="tokenInfo"></div>
+      </div>
+
+      <div class="row-actions" style="margin-top:18px">
+        <button class="btn btn-go" onclick="copyPrompt()">⧉ Copiar prompt (cole no chat)</button>
+        <button class="btn btn-sm" onclick="dlJson()">Baixar .json</button>
+        <button class="btn btn-sm" onclick="dlCar()">Baixar .car</button>
+      </div>
+      <div class="cidlbl" style="margin-top:18px">Prévia do que será colado:</div>
+      <pre id="promptBox"></pre>
+    </div>
+  </section>
+
+  <!-- VERIFICAR -->
+  <section id="panel-verificar" style="display:none">
+    <div class="field">
+      <label>Cole o conteúdo de uma capsula.json</label>
+      <textarea id="vinput" style="min-height:200px" placeholder='{ "root": "bafkrei...", "manifest": {...}, "blocks": {...} }'></textarea>
+    </div>
+    <button class="btn btn-go" onclick="verificar()">Verificar integridade</button>
+    <div id="vout"></div>
+    <div class="note">A verificação re-calcula o hash de cada bloco e confere contra o CID declarado e contra o root. Qualquer alteração de um caractere é detectada.</div>
+  </section>
+
+  <!-- ENXUGAR -->
+  <section id="panel-enxugar" style="display:none">
+    <div class="field">
+      <label>Sua mensagem para o chat <span class="hint">— cole o texto que você ia mandar</span></label>
+      <textarea id="shInput" style="min-height:140px" placeholder="ex.: Olá, tudo bem? Por favor, será que você poderia me ajudar a..." oninput="enxugar()"></textarea>
+    </div>
+    <div class="tokinfo" id="shInfo"></div>
+    <div class="field" style="margin-top:14px">
+      <label>Versão enxuta <span class="hint">— editável: ajuste qualquer aspereza antes de copiar</span></label>
+      <textarea id="shOut" style="min-height:120px" oninput="shRecount()"></textarea>
+    </div>
+    <div class="row-actions">
+      <button class="btn btn-go" onclick="shCopy()">⧉ Copiar versão enxuta</button>
+    </div>
+    <div class="note">Compressão <b>semântica</b> offline: corta saudações, cortesia e muletas, mantendo o português legível. É um método por regras, então <b>revise</b> — ele pode deixar pequenas asperezas. O maior ganho de tokens costuma estar no contexto (use o <b>pack</b> na aba Gerar), não na instrução.</div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== SHA-256 puro (sem dependencia de secure context) =====
+function sha256Bytes(bytes){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  let h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const l=bytes.length,bl=l*8,withOne=l+1;
+  const padLen=(withOne%64<=56)?(56-withOne%64):(120-withOne%64);
+  const total=l+1+padLen+8,m=new Uint8Array(total);
+  m.set(bytes);m[l]=0x80;
+  const hi=Math.floor(bl/0x100000000),lo=bl>>>0;
+  m[total-8]=(hi>>>24)&255;m[total-7]=(hi>>>16)&255;m[total-6]=(hi>>>8)&255;m[total-5]=hi&255;
+  m[total-4]=(lo>>>24)&255;m[total-3]=(lo>>>16)&255;m[total-2]=(lo>>>8)&255;m[total-1]=lo&255;
+  const w=new Uint32Array(64),rotr=(x,n)=>(x>>>n)|(x<<(32-n));
+  for(let i=0;i<total;i+=64){
+    for(let t=0;t<16;t++){const j=i+t*4;w[t]=(m[j]<<24)|(m[j+1]<<16)|(m[j+2]<<8)|m[j+3];}
+    for(let t=16;t<64;t++){const s0=rotr(w[t-15],7)^rotr(w[t-15],18)^(w[t-15]>>>3);const s1=rotr(w[t-2],17)^rotr(w[t-2],19)^(w[t-2]>>>10);w[t]=(w[t-16]+s0+w[t-7]+s1)|0;}
+    let[a,b,c,d,e,f,g,hh]=h;
+    for(let t=0;t<64;t++){const S1=rotr(e,6)^rotr(e,11)^rotr(e,25),ch=(e&f)^(~e&g);const t1=(hh+S1+ch+K[t]+w[t])|0;const S0=rotr(a,2)^rotr(a,13)^rotr(a,22),maj=(a&b)^(a&c)^(b&c);const t2=(S0+maj)|0;hh=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}
+    h=[(h[0]+a)|0,(h[1]+b)|0,(h[2]+c)|0,(h[3]+d)|0,(h[4]+e)|0,(h[5]+f)|0,(h[6]+g)|0,(h[7]+hh)|0];
+  }
+  const out=new Uint8Array(32);
+  for(let i=0;i<8;i++){out[i*4]=(h[i]>>>24)&255;out[i*4+1]=(h[i]>>>16)&255;out[i*4+2]=(h[i]>>>8)&255;out[i*4+3]=h[i]&255;}
+  return out;
+}
+// ===== canonical JSON / CID / base32 / varint / CAR =====
+function canonical(o){
+  if(Array.isArray(o))return '['+o.map(canonical).join(',')+']';
+  if(o&&typeof o==='object'){const k=Object.keys(o).sort();return '{'+k.map(x=>JSON.stringify(x)+':'+canonical(o[x])).join(',')+'}';}
+  return JSON.stringify(o);
+}
+const B32='abcdefghijklmnopqrstuvwxyz234567';
+const B32MAP=Object.fromEntries([...B32].map((c,i)=>[c,i]));
+function b32enc(bytes){let bits=0,val=0,out='';for(const b of bytes){val=(val<<8)|b;bits+=8;while(bits>=5){out+=B32[(val>>>(bits-5))&31];bits-=5;}}if(bits>0)out+=B32[(val<<(5-bits))&31];return out;}
+function varint(n){const o=[];while(true){let b=n&0x7f;n=Math.floor(n/128);if(n)o.push(b|0x80);else{o.push(b);break;}}return o;}
+function blockCid(obj){
+  const data=new TextEncoder().encode(canonical(obj));
+  const d=sha256Bytes(data);
+  const cid=[1,0x55,0x12,0x20,...d]; // v1 + raw + sha2-256 multihash
+  return 'b'+b32enc(new Uint8Array(cid));
+}
+function cidToBytes(s){const body=s.slice(1);let bits=0,val=0;const out=[];for(const ch of body){val=(val<<5)|B32MAP[ch];bits+=5;if(bits>=8){out.push((val>>>(bits-8))&0xff);bits-=8;}}return out;}
+function cborHead(maj,v){if(v<24)return[(maj<<5)|v];if(v<256)return[(maj<<5)|24,v];if(v<65536)return[(maj<<5)|25,(v>>8)&255,v&255];throw new Error('cbor');}
+function carBytes(cap){
+  const rb=cidToBytes(cap.root);
+  let hdr=[0xa2];
+  hdr=hdr.concat(cborHead(3,5),[...'roots'].map(c=>c.charCodeAt(0)),[0x81]);
+  const body=[0x00,...rb];
+  hdr=hdr.concat([0xd8,0x2a],cborHead(2,body.length),body);
+  hdr=hdr.concat(cborHead(3,7),[...'version'].map(c=>c.charCodeAt(0)),[0x01]);
+  const out=[];out.push(...varint(hdr.length),...hdr);
+  for(const[cid,obj]of Object.entries(cap.blocks)){
+    const cb=cidToBytes(cid);const data=[...new TextEncoder().encode(canonical(obj))];
+    const blk=[...cb,...data];out.push(...varint(blk.length),...blk);
+  }
+  return new Uint8Array(out);
+}
+
+// ===== estado / UI =====
+let lastCapsule=null;
+const SEED=[
+  {claim:"O projeto Apolo usa Postgres 16 como banco principal.",source:"doc-arquitetura-v3, secao 2",conf:"0.97",tags:"infra"},
+  {claim:"A API de pagamentos NAO deve ser chamada em ambiente de teste sem o header X-Sandbox.",source:"runbook-pagamentos",conf:"1",tags:"regra, pagamentos"},
+];
+function stmtRow(d={}){
+  const el=document.createElement('div');el.className='stmt';
+  el.innerHTML=`<button class="rm" title="remover" onclick="this.parentNode.remove()">×</button>
+    <label>Afirmação</label>
+    <textarea class="f-claim" placeholder="um fato atômico, verificável">${d.claim||''}</textarea>
+    <div class="grid">
+      <div><label>Fonte (opcional)</label><input class="f-src" value="${d.source||''}" placeholder="doc, runbook, url..."></div>
+      <div><label>Confiança 0–1</label><input class="f-conf" type="number" min="0" max="1" step="0.01" value="${d.conf??''}"></div>
+    </div>
+    <div style="margin-top:12px"><label>Tags (separadas por vírgula, opcional)</label><input class="f-tags" value="${d.tags||''}"></div>`;
+  return el;
+}
+function addStmt(d){document.getElementById('stmts').appendChild(stmtRow(d));}
+SEED.forEach(addStmt);
+
+// ===== leitura de arquivos (vira afirmacoes) =====
+let fileStatements=[]; // {claim, sources, tags, name}
+function ext(name){const m=name.split('.').pop();return (m&&m!==name)?m.toLowerCase():'txt';}
+function decodeBytes(buf){
+  const b=new Uint8Array(buf);
+  // detecta codificacao pelo BOM (resolve arquivos UTF-16 do Windows)
+  if(b.length>=3&&b[0]===0xEF&&b[1]===0xBB&&b[2]===0xBF)
+    return new TextDecoder('utf-8').decode(b.subarray(3));
+  if(b.length>=2&&b[0]===0xFF&&b[1]===0xFE)
+    return new TextDecoder('utf-16le').decode(b.subarray(2));
+  if(b.length>=2&&b[0]===0xFE&&b[1]===0xFF)
+    return new TextDecoder('utf-16be').decode(b.subarray(2));
+  // heuristica: muitos bytes nulos em posicoes alternadas => UTF-16 sem BOM
+  let nul=0;for(let i=0;i<Math.min(b.length,2000);i++)if(b[i]===0)nul++;
+  if(b.length>0&&nul/Math.min(b.length,2000)>0.2)
+    return new TextDecoder('utf-16le').decode(b);
+  return new TextDecoder('utf-8',{fatal:false}).decode(b);
+}
+function isRealBinary(s){ // so rejeita se for claramente binario apos decodificar
+  let nul=0,repl=0;const n=Math.min(s.length,4000);
+  for(let i=0;i<n;i++){const c=s.charCodeAt(i);if(c===0)nul++;else if(c===0xFFFD)repl++;}
+  return n>0&&(nul/n>0.3||repl/n>0.3);
+}
+// ===== BLT Pre-tokenizacao (Byte Latent Transformer) =====
+function bltBytesView(text){return[...new TextEncoder().encode(text)];}
+function bltLocalEntropy(byteSeq,window=256){
+  const n=byteSeq.length,ent=new Float64Array(n),freq=new Map(),q=[];let qs=0;
+  for(let i=0;i<n;i++){
+    const b=byteSeq[i];freq.set(b,(freq.get(b)||0)+1);q.push(b);
+    if(q.length-qs>window){const old=q[qs++];const c=freq.get(old)-1;if(c===0)freq.delete(old);else freq.set(old,c);}
+    const total=q.length-qs;let e=0;
+    for(const c of freq.values()){const p=c/total;e-=p*Math.log2(p);}
+    ent[i]=e;
+  }return ent;
+}
+function bltEntropyPatches(text,threshold=4.0,minPB=64){
+  const bs=bltBytesView(text);if(!bs.length)return text.trim()?[text.trim()]:[];
+  const ent=bltLocalEntropy(bs);const splits=[];let last=0;
+  for(let i=1;i<bs.length;i++){
+    if(ent[i]>=threshold&&(i-last)>=minPB){
+      let snap=i;
+      for(let j=i;j>Math.max(last,i-30);j--){if(bs[j]===10){snap=j+1;break;}else if(bs[j]===13||bs[j]===32||bs[j]===9)snap=j+1;}
+      if(snap>last&&(snap-last)>=minPB){splits.push(snap);last=snap;}
+    }
+  }
+  const bd=[0,...splits,bs.length],patches=[];
+  for(let i=0;i<bd.length-1;i++){const ch=new Uint8Array(bs.slice(bd[i],bd[i+1]));const t=new TextDecoder('utf-8',{fatal:false}).decode(ch).trim();if(t)patches.push(t);}
+  return patches.length?patches:(text.trim()?[text.trim()]:[]);
+}
+function bltEstimateTokens(text){
+  if(!text||!text.trim())return 0;
+  const bs=bltBytesView(text);if(bs.length<8)return Math.max(1,Math.floor(bs.length/3));
+  const patches=bltEntropyPatches(text,3.5,4);let total=0;
+  for(const p of patches){total+=Math.max(1,Math.round(new TextEncoder().encode(p).length/3.7));}
+  return Math.max(1,total);
+}
+let chunkMode='whole'; // 'whole' ou 'entropy'
+function setChunkMode(m){
+  chunkMode=m;
+  document.getElementById('modeChunkWhole').setAttribute('aria-selected',m==='whole');
+  document.getElementById('modeChunkEntropy').setAttribute('aria-selected',m==='entropy');
+}
+function renderChips(){
+  const box=document.getElementById('chips');box.innerHTML='';
+  if(!fileStatements.length){box.innerHTML='<span class="dz-hint">Nenhum arquivo carregado ainda.</span>';return;}
+  fileStatements.forEach((f,i)=>{
+    const toks=bltEstimateTokens(f.claim);
+    const el=document.createElement('span');el.className='filechip';
+    el.innerHTML=`📄 ${f.name} <span class="meta">(${f.claim.length} chars · ~${toks} tok)</span> <span class="x" title="remover">×</span>`;
+    el.querySelector('.x').onclick=()=>{fileStatements.splice(i,1);renderChips();};
+    box.appendChild(el);
+  });
+}
+async function extractPdfText(buf, name){
+  if(!window.pdfjsLib) return {skip:name+' (leitor de PDF não carregou — precisa de internet)'};
+  try{
+    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+    let text='', scanned=0;
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      const pt=tc.items.map(it=>it.str).join(' ').replace(/\s+/g,' ').trim();
+      if(pt.length<25)scanned++; else text+=pt+'\n\n';
+    }
+    text=text.trim();
+    if(!text)return {skip:name+' (escaneado/sem texto — use o terminal p/ OCR)'};
+    const note=scanned>0?' [+'+scanned+' pág. escaneada(s): use terminal p/ OCR]':'';
+    return {st:{claim:text,sources:[name+note],tags:['pdf'],name:name+note}};
+  }catch(e){return {skip:name+' (erro de PDF: '+(e.message||e)+')'};}
+}
+async function processFile(file){
+  const buf=await file.arrayBuffer();
+  if(ext(file.name)==='pdf')return await extractPdfText(buf,file.name);
+  let content;try{content=decodeBytes(buf);}catch(e){content='';}
+  if(content&&isRealBinary(content))return {skip:file.name+' (binário, não é texto)'};
+  if(chunkMode==='entropy'&&content.length>100){
+    const contentBytes=new TextEncoder().encode(content).length;
+    const minPB=Math.max(200,Math.floor(contentBytes/15));
+    const patches=bltEntropyPatches(content,4.0,minPB);
+    if(patches.length>1){
+      return {sts:patches.map((p,i)=>({claim:p,sources:[file.name+` (patch ${i+1}/${patches.length})`],tags:[ext(file.name)],name:file.name+` [${i+1}/${patches.length}]`}))};
+    }
+  }
+  return {st:{claim:content,sources:[file.name],tags:[ext(file.name)],name:file.name}};
+}
+async function readFiles(fileList){
+  const files=[...(fileList||[])];
+  if(!files.length){toast('Nenhum arquivo selecionado');return;}
+  toast('Lendo '+files.length+' arquivo(s)...');
+  let added=0, skipped=[];
+  for(const file of files){
+    let r;try{r=await processFile(file);}catch(e){r={skip:file.name+' (erro)'};}
+    if(r&&r.sts){r.sts.forEach(s=>fileStatements.push(s));added+=r.sts.length;}
+    else if(r&&r.st){fileStatements.push(r.st);added++;}
+    else if(r&&r.skip)skipped.push(r.skip);
+  }
+  finish(added,skipped);
+}
+function finish(added,skipped){
+  renderChips();
+  let msg=added+' arquivo(s) carregado(s)';
+  if(skipped.length)msg+=' · '+skipped.length+' ignorado(s): '+skipped.join(', ');
+  toast(msg);
+}
+// anexa os handlers imediatamente (o script roda apos o DOM existir)
+(function(){
+  const dz=document.getElementById('drop');
+  const pick=document.getElementById('filepick');
+  if(pick)pick.addEventListener('change',e=>readFiles(e.target.files));
+  if(dz){
+    ['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('over');}));
+    ['dragleave','dragend'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('over');}));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');readFiles(e.dataTransfer.files);});
+  }
+  renderChips();
+})();
+
+function collectStatements(){
+  const rows=[...document.querySelectorAll('#stmts .stmt')];
+  const now=new Date().toISOString();
+  return rows.map(r=>{
+    const claim=r.querySelector('.f-claim').value.trim();
+    if(!claim)return null;
+    const st={type:'statement',claim};
+    const src=r.querySelector('.f-src').value.trim();
+    if(src)st.sources=[src];
+    const cv=r.querySelector('.f-conf').value;
+    if(cv!=='' ){const c=Number(cv);st.confidence=Number.isInteger(c)?c:c;}
+    const tags=r.querySelector('.f-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    if(tags.length)st.tags=tags;
+    st.ts=now;
+    return st;
+  }).filter(Boolean);
+}
+function gerar(){
+  const title=document.getElementById('title').value.trim()||'Sem titulo';
+  const now=new Date().toISOString();
+  const fileSts=fileStatements.map(f=>({type:'statement',claim:f.claim,sources:f.sources,tags:f.tags,ts:now}));
+  const sts=[...fileSts,...collectStatements()];
+  if(!sts.length){toast('Adicione um arquivo ou ao menos uma afirmação');return;}
+  const blocks={},cids=[];
+  for(const st of sts){const cid=blockCid(st);blocks[cid]=st;cids.push(cid);}
+  const manifest={type:'capsule',spec:'ctxcap/1',title,created:now,statements:cids};
+  const root=blockCid(manifest);blocks[root]=manifest;
+  lastCapsule={root,manifest,blocks};
+  document.getElementById('rootCid').textContent=root;
+  const ul=document.getElementById('cidlist');ul.innerHTML='';
+  cids.forEach(c=>{
+    const claim=blocks[c].claim;
+    const src=(blocks[c].sources||[])[0];
+    const short=claim.length>180?claim.slice(0,180)+' […]':claim;
+    const li=document.createElement('li');
+    li.innerHTML=`<div class="c">${c}</div><div class="t">${src?'<b style="color:var(--amber)">'+src+'</b> · ':''}${short.replace(/</g,'&lt;')}</div>`;
+    ul.appendChild(li);
+  });
+  document.getElementById('packQuery').value='';
+  document.getElementById('terseChk').checked=false;
+  promptMode='full';
+  setMode('full'); // tambem chama renderPrompt
+  document.getElementById('out').style.display='block';
+  document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ---- formato + selecao por relevancia (economia de tokens) ----
+let promptMode='full';
+const STOPWORDS=new Set('a o e de da do das dos em no na nos nas um uma uns umas que com por para se ao aos as os ou mas como qual quais quando onde sao esta estao foi ser usa usado usada the of and to in is are was for on with as at by an be this that it from or'.split(' '));
+function normTerms(t){
+  const s=t.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return (s.match(/[a-z0-9]+/g)||[]);
+}
+function rankByRelevance(cap,query,k){
+  const cids=cap.manifest.statements;
+  const docs={};cids.forEach(c=>docs[c]=normTerms(cap.blocks[c].claim));
+  const df={};Object.values(docs).forEach(toks=>{new Set(toks).forEach(w=>df[w]=(df[w]||0)+1);});
+  const n=Math.max(cids.length,1);
+  const q=new Set(normTerms(query).filter(w=>!STOPWORDS.has(w)&&w.length>1));
+  const score={};
+  cids.forEach(c=>{
+    const tf={};docs[c].forEach(w=>tf[w]=(tf[w]||0)+1);
+    let s=0;q.forEach(w=>{if(tf[w]){const idf=Math.log(1+n/(df[w]||1));s+=idf*(1+Math.log(tf[w]));}});
+    score[c]=s;
+  });
+  const ranked=[...cids].sort((a,b)=>score[b]-score[a]);
+  const rel=ranked.filter(c=>score[c]>0);
+  const chosen=rel.length?rel:ranked;
+  return (k&&k>0)?chosen.slice(0,k):chosen;
+}
+function shortIds(cids){
+  let nn=4;
+  while(true){const m={};cids.forEach(c=>m[c]='#'+c.slice(-nn));if(new Set(Object.values(m)).size===cids.length)return m;nn++;}
+}
+const TERSE_RULES='Saida enxuta: responda direto, sem preambulo, saudacao ou fecho; sem repetir a pergunta; so o que foi pedido, no minimo de palavras; se nao souber, diga "nao sei" em vez de inventar.';
+function buildPrompt(cap,only,terse){
+  const m=cap.manifest;
+  const list=only||m.statements;
+  const lines=list.map(c=>{
+    const s=cap.blocks[c];const ex=[];
+    if('confidence'in s)ex.push('conf='+s.confidence);
+    if('sources'in s)ex.push('fontes='+s.sources.join('; '));
+    return `- (${c}) ${s.claim}${ex.length?' ['+ex.join(', ')+']':''}`;
+  }).join('\n');
+  let out=`[CONTEXTO VERIFICADO — Context Capsule ${m.spec}]
+Root CID: ${cap.root}
+
+Protocolo:
+- Trate APENAS as afirmacoes abaixo como verdade fornecida. Cada uma tem um CID
+  (hash do proprio conteudo) e, quando disponivel, fonte e confianca.
+- Ao responder, cite os CIDs das afirmacoes que voce usou.
+- Se a pergunta exigir algo que NAO esteja coberto por estas afirmacoes, diga
+  explicitamente "fora do contexto verificado" em vez de inventar.
+- Nao contradiga uma afirmacao verificada sem sinalizar o conflito.
+
+Afirmacoes:
+${lines}`;
+  if(terse)out+='\n'+TERSE_RULES;
+  return out;
+}
+function buildCompact(cap,only,terse){
+  const m=cap.manifest;
+  const sid=shortIds(m.statements);
+  const list=only||m.statements;
+  const head=`CTX[${cap.root.slice(-6)}] So estes fatos sao verdade; cite o # usado; se algo nao estiver coberto, diga "fora do contexto".`;
+  const lines=list.map(c=>{
+    const s=cap.blocks[c];const meta=[];
+    if('sources'in s)meta.push(s.sources[0]);
+    if('confidence'in s)meta.push(String(s.confidence));
+    const mm=meta.length?' <'+meta.join(';')+'>':'';
+    return `${sid[c]} ${s.claim.trim()}${mm}`;
+  });
+  let out=head+'\n'+lines.join('\n');
+  if(terse)out+='\n'+TERSE_RULES;
+  return out;
+}
+function estTok(t){return bltEstimateTokens(t);}
+function setMode(mode){
+  promptMode=mode;
+  document.getElementById('modeFull').setAttribute('aria-selected',mode==='full');
+  document.getElementById('modeCompact').setAttribute('aria-selected',mode==='compact');
+  renderPrompt();
+}
+function renderPrompt(){
+  if(!lastCapsule)return;
+  const all=lastCapsule.manifest.statements;
+  const q=document.getElementById('packQuery').value.trim();
+  const k=parseInt(document.getElementById('packK').value,10);
+  const terse=document.getElementById('terseChk').checked;
+  const chosen=q?rankByRelevance(lastCapsule,q,k):all;
+  const text=(promptMode==='compact')?buildCompact(lastCapsule,chosen,terse):buildPrompt(lastCapsule,chosen,terse);
+  document.getElementById('promptBox').textContent=text;
+  const fullAll=buildPrompt(lastCapsule,all,false);
+  let info=`~${estTok(text)} tokens`;
+  if(text!==fullAll)info+=` · enviando ${chosen.length}/${all.length} fatos · completo seria ~${estTok(fullAll)} (economia ~${Math.max(0,Math.round((1-estTok(text)/estTok(fullAll))*100))}%)`;
+  document.getElementById('tokenInfo').textContent=info;
+}
+function copyPrompt(){navigator.clipboard.writeText(document.getElementById('promptBox').textContent).then(()=>toast('Prompt copiado')).catch(()=>toast('Selecione e copie manualmente (Ctrl+C)'));}
+function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function dlJson(){dl('capsula.json',new Blob([JSON.stringify(lastCapsule,null,2)],{type:'application/json'}));}
+function dlCar(){dl('capsula.car',new Blob([carBytes(lastCapsule)],{type:'application/vnd.ipld.car'}));}
+
+function verificar(){
+  const out=document.getElementById('vout');out.innerHTML='';
+  let cap;try{cap=JSON.parse(document.getElementById('vinput').value);}catch(e){out.innerHTML='<div class="verdict bad">JSON inválido: '+e.message+'</div>';return;}
+  const problems=[];
+  if(!cap.blocks||!cap.root){out.innerHTML='<div class="verdict bad">Faltam campos root/blocks.</div>';return;}
+  for(const[cid,obj]of Object.entries(cap.blocks)){const re=blockCid(obj);if(re!==cid)problems.push(`bloco corrompido: declarado ${cid.slice(0,18)}… recalculado ${re.slice(0,18)}…`);}
+  const man=cap.blocks[cap.root];
+  if(!man)problems.push('root ausente nos blocos');
+  else{
+    if(man.type!=='capsule')problems.push('root não é manifesto de cápsula');
+    (man.statements||[]).forEach(c=>{if(!cap.blocks[c])problems.push('afirmação referenciada ausente: '+c.slice(0,18)+'…');});
+    if(blockCid(man)!==cap.root)problems.push('root não corresponde ao hash do manifesto');
+  }
+  if(problems.length===0){out.innerHTML='<div class="verdict ok">✓ ÍNTEGRA — todos os hashes batem. root '+cap.root.slice(0,22)+'…</div>';}
+  else{out.innerHTML='<div class="verdict bad">✗ FALHOU — '+problems.length+' problema(s)<ul>'+problems.map(p=>'<li>'+p+'</li>').join('')+'</ul></div>';}
+}
+
+function showTab(t){
+  for(const name of ['gerar','verificar','enxugar']){
+    document.getElementById('panel-'+name).style.display=(t===name)?'block':'none';
+  }
+  document.getElementById('tabGerar').setAttribute('aria-selected',t==='gerar');
+  document.getElementById('tabVerificar').setAttribute('aria-selected',t==='verificar');
+  document.getElementById('tabEnxugar').setAttribute('aria-selected',t==='enxugar');
+}
+
+// ===== enxugador da mensagem (mesmas regras do ctxcap.py) =====
+const SH_GREET=[/\bol[áa]\b/gi,/\boi\b/gi,/\be a[íi]\b/gi,/\bbom dia\b/gi,/\bboa tarde\b/gi,/\bboa noite\b/gi,/\btudo bem\s*\??/gi,/\btudo bom\s*\??/gi,/\bcomo vai\s*\??/gi];
+const SH_THANKS=[/(desde j[áa],?\s*)?(muit[oa]s?\s+|muit[íi]ssimo\s+)?obrigad[oa]s?(\s*[!.]*)?/gi,/\bagrade[çc]o( desde j[áa])?\b/gi,/\bvaleu\b/gi,/\bgrat[oa]\b/gi];
+const SH_FILL=[/\bpor favor\b/gi,/\bvoc[eê] poderia\b/gi,/\bser[áa] que voc[eê] (poderia|consegue|pode)\b/gi,/\bgostaria de (saber|pedir|que)\b/gi,/\beu queria\b/gi,/\beu gostaria\b/gi,/\bse poss[íi]vel\b/gi,/\bquando puder\b/gi,/\bvoc[eê] consegue\b/gi,/\bestou tentando\b/gi,/\beu estou\b/gi,/\bna verdade\b/gi,/\bbasicamente\b/gi,/\bsimplesmente\b/gi,/\bs[óo] pra (deixar claro|confirmar)\b/gi,/\btipo assim\b/gi,/\bsabe\s*\??/gi,/\bn[ée]\s*\??/gi,/\benfim\b/gi];
+const SH_SUBST=[[/\ba fim de que\b/gi,'para'],[/\ba fim de\b/gi,'para'],[/\bde modo que\b/gi,'para'],[/\bde forma que\b/gi,'para'],[/\bcom o objetivo de\b/gi,'para'],[/\bno sentido de\b/gi,'sobre'],[/\bem rela[çc][ãa]o a\b/gi,'sobre'],[/\bfazer com que\b/gi,'fazer'],[/\buma vez que\b/gi,'pois'],[/\bdevido ao fato de que\b/gi,'porque'],[/\bbem como\b/gi,'e'],[/\bque eu possa\b/gi,'pra eu'],[/\bme ajud[ae] a\b/gi,'']];
+function shrinkMsg(t){
+  let s=t;
+  s=s.replace(/^\s*(?:(?:ol[áa]|oi|e a[íi]|bom dia|boa tarde|boa noite|tudo bem|tudo bom|como vai)[\s,!.?]*)+/i,'');
+  for(const p of [...SH_GREET,...SH_THANKS,...SH_FILL])s=s.replace(p,'');
+  for(const [p,r] of SH_SUBST)s=s.replace(p,r);
+  s=s.replace(/\s+([,.;:?!])/g,'$1')
+     .replace(/([,;:])(\s*[,;:])+/g,'$1')
+     .replace(/([?.!])[\s,;:]*([?.!])/g,'$2')
+     .replace(/,(\s*[.?!])/g,'$1')
+     .replace(/(^|[.?!]\s*)[,;:]\s*/g,'$1')
+     .replace(/\s{2,}/g,' ').replace(/\s+,/g,',').replace(/,\s*,/g,',')
+     .replace(/^[\s,;:\n\t]+|[\s,;:\n\t]+$/g,'');
+  s=s.replace(/(^|[.?!]\s+)([a-zà-ú])/g,(m,a,b)=>a+b.toUpperCase());
+  return s.trim();
+}
+function enxugar(){
+  const inp=document.getElementById('shInput').value;
+  const out=shrinkMsg(inp);
+  document.getElementById('shOut').value=out;
+  shInfo(inp,out);
+}
+function shRecount(){shInfo(document.getElementById('shInput').value,document.getElementById('shOut').value);}
+function shInfo(inp,out){
+  const ti=estTok(inp),to=estTok(out);
+  const eco=ti>0?Math.max(0,Math.round((1-to/ti)*100)):0;
+  document.getElementById('shInfo').textContent=inp.trim()?`~${ti} tokens → ~${to} tokens (economia ~${eco}%)`:'';
+}
+function shCopy(){navigator.clipboard.writeText(document.getElementById('shOut').value).then(()=>toast('Mensagem enxuta copiada')).catch(()=>toast('Selecione e copie (Ctrl+C)'));}
+let toastT;function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1600);}
+</script>
